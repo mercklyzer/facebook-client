@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Field } from "@/components/ui/field";
-import { signup } from "@/queries/users";
+import { login } from "@/queries/users";
 import { Button, Fieldset, Flex, Input, Spinner } from "@chakra-ui/react";
 import { AxiosError } from "axios";
 import { useState } from "react";
@@ -9,31 +9,25 @@ import { useMutation } from "react-query";
 import { Alert } from "@/components/ui/alert";
 import { useRouter } from "next/router";
 import { AxiosResponse } from "@/types/axios";
+import { useRedirect } from "@/hooks/useRedirect";
+import Link from "next/link";
 
-export interface SignupForm {
-  username: string;
+export interface LoginForm {
+  username_or_email: string;
   password: string;
-  confirm_password: string;
-  first_name: string;
-  last_name: string;
-  email: string;
 }
 
-export const Signup = () => {
-  const { register, handleSubmit } = useForm<SignupForm>({
+export const Login = () => {
+  const { register, handleSubmit } = useForm<LoginForm>({
     defaultValues: {
-      username: "",
+      username_or_email: "",
       password: "",
-      confirm_password: "",
-      first_name: "",
-      last_name: "",
-      email: "",
     },
   });
   const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
   const { mutate, data, isLoading } = useMutation({
-    mutationFn: signup,
+    mutationFn: login,
     onError: (error) => {
       const axiosResponse = (error as AxiosError).response?.data;
       const errorMessages = (axiosResponse as AxiosResponse).errors;
@@ -49,18 +43,17 @@ export const Signup = () => {
     router.push("/");
   }
 
-  const onSubmit = (values: SignupForm) => {
-    setErrorMessages([]);
-    console.log(values);
-    mutate(values);
-  };
-
   useEffect(() => {
     if (!!sessionStorage.getItem("sessionToken")) {
       router.push("/");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const onSubmit = (values: LoginForm) => {
+    setErrorMessages([]);
+    console.log(values);
+    mutate(values);
+  };
 
   return (
     <>
@@ -71,30 +64,20 @@ export const Signup = () => {
               <Alert status="error">{errorMessages.join(", ")}</Alert>
             )}
             <Fieldset.Content mb={4}>
-              <Field label="Username">
-                <Input {...register("username")} />
+              <Field label="Username or Email">
+                <Input {...register("username_or_email")} />
               </Field>
               <Field label="Password">
                 <Input type="password" {...register("password")} />
-              </Field>
-              <Field label="Confirm Password">
-                <Input type="password" {...register("confirm_password")} />
-              </Field>
-              <Field label="First Name">
-                <Input {...register("first_name")} />
-              </Field>
-              <Field label="Last Name">
-                <Input {...register("last_name")} />
-              </Field>
-              <Field label="Email address">
-                <Input type="email" {...register("email")} />
               </Field>
             </Fieldset.Content>
 
             <Button type="submit" alignSelf="flex-start" disabled={isLoading}>
               {isLoading && <Spinner />}
-              Signup
+              Login
             </Button>
+
+            <Link href="/signup">Sign up</Link>
           </Fieldset.Root>
         </Flex>
       </form>
@@ -102,4 +85,4 @@ export const Signup = () => {
   );
 };
 
-export default Signup;
+export default Login;
